@@ -22,15 +22,15 @@ blueprint:
       selector:
         select:
           options:
-            - value: 1
+            - value: "1"
               label: Upper Left Button
-            - value: 2
+            - value: "2"
               label: Upper Right Button
-            - value: 3
+            - value: "3"
               label: Lower Left Button
-            - value: 4
+            - value: "4"
               label: Lower Right Button
-            - value: 5
+            - value: "5"
               label: Large Button
     led_color:
       name: LED Color
@@ -68,7 +68,7 @@ action:
   - service: zwave_js.set_config_parameter
     data:
       device_id: !input 'zooz_switch'
-      parameter: "{{ 'button_led_' + button_number | string }}"
+      parameter: "{{ 'button_led_' + (button_number | int) | string }}"
       value: "{{ led_color }}"
   - choose:
       - conditions:
@@ -77,5 +77,5 @@ action:
           - service: zwave_js.set_config_parameter
             data:
               device_id: !input 'zooz_switch'
-              parameter: "{{ 'button_brightness_' + button_number | string }}"
+              parameter: "{{ 'button_brightness_' + (button_number | int) | string }}"
               value: "{{ led_brightness }}"
