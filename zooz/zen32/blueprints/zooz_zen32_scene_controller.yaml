@@ -2,7 +2,6 @@ blueprint:
   # Credit to user [fxlt](https://community.home-assistant.io/u/fxlt) for most of this layout on the [Blueprint Exchange](https://community.home-assistant.io/t/zen32-scene-controller-z-wave-js/292610).
   name: ZEN32 (Z-Wave JS)
   description: Create automations for the Zooz ZEN32 switch using the Z-Wave JS integration.
-  icon: mdi:dip=switch
   domain: automation
   input:
     zooz_switch:
