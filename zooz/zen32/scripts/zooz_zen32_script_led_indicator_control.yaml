@@ -1,0 +1,148 @@
+alias: ZEN32 LED Indicator Control
+description: Control LED color, brightness, and indicator settings for buttons on the Zooz ZEN32 scene controller.
+icon: mdi:led-on
+mode: single
+fields:
+  zooz_switch:
+    description: The Zooz ZEN32 scene controller device.
+    example: device_id_of_zen32
+    required: true
+    selector:
+      device:
+        filter:
+          - integration: zwave_js
+            manufacturer: Zooz
+            model: ZEN32
+          - integration: zwave_js
+            manufacturer: Zooz
+            model: ZEN32 800LR
+  button_number:
+    description: Select which buttons you want to modify. 
+    required: true
+    selector:
+      select:
+        multiple: true
+        options:
+          - value: "1"
+            label: Scene 1 Button - Upper Left
+          - value: "2"
+            label: Scene 2 Button - Upper Right
+          - value: "3"
+            label: Scene 3 Button - Lower Left
+          - value: "4"
+            label: Scene 4 Button - Lower Right
+          - value: "5"
+            label: Scene 5 Button - Large Button
+  led_color:
+    description: Select the color for the LED. (Optional)
+    required: true
+    selector:
+      select:
+        options:
+          - value: "0"
+            label: White
+          - value: "1"
+            label: Blue
+          - value: "2"
+            label: Green
+          - value: "3"
+            label: Red
+          - value: "4"
+            label: Magenta
+          - value: "5"
+            label: Yellow
+  led_brightness:
+    description: The brightness level for the LED (Low, Medium, Bright) (Optional).
+    required: true
+    example: Low
+    default: null
+    selector:
+      select:
+        options:
+          - value: "2"
+            label: Low (30%)
+          - value: "1"
+            label: Medium (60%)
+          - value: "0"
+            label: Bright (100%)
+  indicator_setting:
+    description: Indicator setting for the load (Optional).
+    required: true
+    default: null
+    selector:
+      select:
+        options:
+          - value: "0"
+            label: On when load is off
+          - value: "1"
+            label: On when load is on
+          - value: "2"
+            label: Always off
+          - value: "3"
+            label: Always on
+sequence:
+  - repeat:
+      count: "{{ button_number | length }}"
+      sequence:
+        - variables:
+            selected_button: "{{ button_number[repeat.index - 1] | int }}"
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: >-
+                    {{ led_brightness is defined and led_brightness is not none
+                    }}
+              sequence:
+                - target:
+                    device_id: "{{ zooz_switch }}"
+                  data:
+                    parameter: >-
+                      {{ button_parameters[selected_button -
+                      1].led_brightness_parameter }}
+                    value: "{{ led_brightness | int }}"
+                  action: zwave_js.set_config_parameter
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: "{{ led_color is defined and led_color is not none }}"
+              sequence:
+                - target:
+                    device_id: "{{ zooz_switch }}"
+                  data:
+                    parameter: >-
+                      {{ button_parameters[selected_button -
+                      1].led_color_parameter }}
+                    value: "{{ led_color | int }}"
+                  action: zwave_js.set_config_parameter
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: >-
+                    {{ indicator_setting is defined and indicator_setting is not
+                    none }}
+              sequence:
+                - target:
+                    device_id: "{{ zooz_switch }}"
+                  data:
+                    parameter: >-
+                      {{ button_parameters[selected_button -
+                      1].indicator_setting_parameter }}
+                    value: "{{ indicator_setting | int }}"
+                  action: zwave_js.set_config_parameter
+variables:
+  button_parameters:
+    - led_color_parameter: 7
+      led_brightness_parameter: 12
+      indicator_setting_parameter: 2
+    - led_color_parameter: 8
+      led_brightness_parameter: 13
+      indicator_setting_parameter: 3
+    - led_color_parameter: 9
+      led_brightness_parameter: 14
+      indicator_setting_parameter: 4
+    - led_color_parameter: 10
+      led_brightness_parameter: 15
+      indicator_setting_parameter: 5
+    - led_color_parameter: 6
+      led_brightness_parameter: 11
+      indicator_setting_parameter: 1
