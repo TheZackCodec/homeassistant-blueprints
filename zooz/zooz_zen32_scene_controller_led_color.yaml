@@ -1,0 +1,81 @@
+blueprint:
+  name: ZEN32 Button LED Control
+  description: >
+    Control LED color and optionally brightness for buttons on the Zooz ZEN32 scene controller.
+  domain: automation
+  input:
+    zooz_switch:
+      name: Zooz Switch
+      description: Select your Zooz ZEN32 scene controller.
+      selector:
+        device:
+          filter:
+            - integration: zwave_js
+              manufacturer: Zooz
+              model: ZEN32
+            - integration: zwave_js
+              manufacturer: Zooz
+              model: ZEN32 800LR
+    button_number:
+      name: Button Selection
+      description: Select the button to control by location.
+      selector:
+        select:
+          options:
+            - value: 1
+              label: Upper Left Button
+            - value: 2
+              label: Upper Right Button
+            - value: 3
+              label: Lower Left Button
+            - value: 4
+              label: Lower Right Button
+            - value: 5
+              label: Large Button
+    led_color:
+      name: LED Color
+      description: Select the color for the LED.
+      selector:
+        select:
+          options:
+            - "Off"
+            - "Red"
+            - "Green"
+            - "Blue"
+            - "Magenta"
+            - "Yellow"
+            - "Cyan"
+            - "White"
+    led_brightness:
+      name: LED Brightness
+      description: Select the brightness level for the LED (0-10). Leave empty to only change color.
+      default: null
+      selector:
+        number:
+          min: 0
+          max: 10
+          unit_of_measurement: brightness
+          mode: slider
+
+trigger:
+  # This can be triggered manually or by an event you define elsewhere
+  - platform: event
+    event_type: zwave_js_value_notification
+    event_data:
+      device_id: !input 'zooz_switch'
+
+action:
+  - service: zwave_js.set_config_parameter
+    data:
+      device_id: !input 'zooz_switch'
+      parameter: "{{ 'button_led_' + button_number | string }}"
+      value: "{{ led_color }}"
+  - choose:
+      - conditions:
+          - "{{ led_brightness is not none }}"
+        sequence:
+          - service: zwave_js.set_config_parameter
+            data:
+              device_id: !input 'zooz_switch'
+              parameter: "{{ 'button_brightness_' + button_number | string }}"
+              value: "{{ led_brightness }}"
